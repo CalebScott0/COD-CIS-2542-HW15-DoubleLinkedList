@@ -5,9 +5,11 @@ int main()
 {
     LinkedList l;
 
-    for(int i = 10; i >= 1; --i)
-        l.push_front(i);
+    l.push_front(1);
+    l.insert(1, 999);
 
+
+        
     std::cout << l << std::endl;
 
     return 0;
