@@ -1,7 +1,6 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 
-#include <cstddef>
 #include <ostream>
 
 class LinkedList
@@ -13,12 +12,14 @@ public:
     void pop_front();
     void push_front(long long v);
 
-    //long long operator [] (int idx);
+    long long operator [] (int idx) const;
 
     bool empty() const;
     int size() const;
     void insert(int idx, long long val);
     void erase(int idx);
+    int find(long long val) const;
+    
 
     friend std::ostream& operator << (std::ostream& ostrm, const LinkedList& right);
 

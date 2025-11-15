@@ -1,5 +1,5 @@
 #include "LinkedList.h"
-#include <cstddef>
+#include <limits>
 
 LinkedList::LinkedList()
     : head(nullptr)
@@ -9,7 +9,10 @@ LinkedList::LinkedList()
 
 LinkedList::~LinkedList()
 {
-    // TODO: FILL IN
+    while(!empty())
+    {
+        pop_front();
+    }
 }
 
 // ListNode struct constructor
@@ -23,27 +26,33 @@ LinkedList::ListNode::ListNode(long long v, ListNode* prev, ListNode* n)
 
 void LinkedList::pop_front()
 {
-    if(head)
+    if(empty())
     {
-        head->next->previous = nullptr;
-        head = head->next;
+        return;
     }
+
+    ListNode* temp = head;
+    head = head->next;
+    
+    // if there was more than 1 element in list
+    if(!empty())
+    {
+        head->previous = nullptr;
+    }
+
+    delete temp;
 }
 
 void LinkedList::push_front(long long v)
 {
-    ListNode* newNode = new ListNode(v);
+    // newNode->next will point to previous head when pushed to front, or head == nullptr if empty list
+    ListNode* newNode = new ListNode(v, nullptr, head);
 
-    if(!head)
-    {
-        head = newNode;
-    }
-    else
+    if(!empty())
     {
         head->previous = newNode;
-        newNode->next = head;
-        head = newNode;
     }
+    head = newNode;
 }
 
 bool LinkedList::empty() const
@@ -67,69 +76,109 @@ int LinkedList::size() const
 
 void LinkedList::insert(int idx, long long val)
 {
-    ListNode* newNode = new ListNode(val);
-    // inserting at head of list
-    if(idx == 0)
+    // insert at head (empty list or idx <= 0)
+    if(idx <= 0 || empty())
     {
-        head->previous = newNode;
-        newNode->next = head;
-        head = newNode;
+        push_front(val);
+        return;
+    }
+
+    ListNode* current = head;
+    int currentIdx = 0;
+
+    // traverse to the node at index idx
+    while(current->next && currentIdx < idx)
+    {
+        current = current->next;
+        ++currentIdx;
+    }
+
+    if(currentIdx < idx) 
+    {
+        // idx is beyond the last element, insert at the end
+        ListNode* newNode = new ListNode(val, current, nullptr);
+        current->next = newNode;
     }
     else
     {
-        int currentIdx = 0;
-        ListNode* current = head;
-        while(current->next && currentIdx != idx)
-        {
-            ++currentIdx;
-            current = current->next;
-        }
-        // inserting at end
-        if(!current->next)
-        {
-            newNode->previous = current;
-            current->next = newNode;
-        }
-        else
-        {
-            current->previous->next = newNode;
-            newNode->previous = current->previous;
-            current->previous = newNode;
-            newNode->next = current;
-        }
+        // insert before current
+        ListNode* newNode = new ListNode(val, current->previous, current);
+        current->previous->next = newNode;
+        current->previous = newNode;
     }
-
 }
 
 void LinkedList::erase(int idx)
 {
+    if(empty())
+    {
+        return;
+    }
+
     // erase head
     if(idx == 0)
     {
-        head = head->next;
-        delete head->previous;
-        head->previous = nullptr;
+        pop_front();
+        return;
     }
 
     int currentIdx = 0;
     ListNode* current = head;
-    while(current->next && currentIdx != idx)
+    while(current && currentIdx != idx)
     {
         ++currentIdx;
         current = current->next;
     }
-    if(currentIdx == idx)
+
+    // arg index is valid
+    if(current)
     {
-
+        // erase idx will never be head here, current->previous always true
+        current->previous->next = current->next;
+        if(current->next)
+        {
+            current->next->previous = current->previous;
+        }
+        delete current;
     }
-};
+}
 
-//long long LinkedList::operator [] (int idx)
-//{
-    //int count = 0;
-    //ListNode* current = head;
-//
-//}
+int LinkedList::find(long long val) const
+{
+    ListNode* current = head;
+    int index = 0;
+    while(current)
+    {
+        if(current->value == val)
+        {
+            // found value
+            return index;
+        }
+        ++index;
+        current = current->next;
+    }
+
+    return -1;
+}
+
+long long LinkedList::operator [] (int idx) const
+{
+    ListNode* current = head;
+    int index = 0;
+    while(current)
+    {
+        if(index == idx)
+        {
+            // found value
+            return current->value;
+        }
+        ++index;
+        current = current->next;
+    }
+
+    return std::numeric_limits<short>::min();
+
+}
 
 std::ostream& operator << (std::ostream& ostrm, const LinkedList& right)
 {
@@ -137,9 +186,10 @@ std::ostream& operator << (std::ostream& ostrm, const LinkedList& right)
 
     while(current)
     {
-        ostrm << current->value;
+        ostrm << current->value << " ";
         current = current->next;
     }
+    ostrm << std::endl;
 
     return ostrm;
 }
